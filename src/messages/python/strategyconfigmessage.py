@@ -13,7 +13,7 @@ class StrategyConfigMessage:
         self.kafka_topic_admin      = jsondata["Kafka-Details"]["Kafka-Topic-Admin"]
         self.qty_unit               = float(jsondata["Configuration"]["QtyUnit"])
         self.qty_lvl_zero_qty       =  float(jsondata["Configuration"]["Lvl0Qty"])
-        self.exit_percentage       =  float(jsondata["Configuration"]["ExitPct"])
+        self.exit_percentage       =  float(jsondata["Configuration"]["SellWhenPctRise"])
         self.levels = []
         for strategy_data in jsondata["Configuration"]["levels"]:
             self.levels.append((float(strategy_data["Percentage"]), float(strategy_data["Qty"])))
