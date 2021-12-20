@@ -17,8 +17,10 @@
             "Kafka-Topic-Admin": "Bot-Admin"
     },
 
+    "Configurations": [
+	    {
 	    "Configuration": {
-		    "Crypto": "USDTBTC",
+		    "Crypto": "BTCUSDT",
 		    "QtyUnit": "5",
 		    "Lvl0Qty": "2",
 		    "SellWhenPctRise": "5",
@@ -35,4 +37,6 @@
 
 		    ]
 	    }
+	    }
+    ]
 }

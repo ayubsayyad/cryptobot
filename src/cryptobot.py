@@ -5,6 +5,7 @@ import time
 import logging
 import copy
 import yaml
+from multiprocessing import Process
 from argparse import ArgumentParser
 from strategies.strategyfactory import StrategyFactory
 from strategies.istrategyinterface import IStrategyInterface
@@ -53,6 +54,10 @@ class CryptoBotController:
                 msg = kafka_bot_consumer.poll(1)
                 if msg:
                     print("bot_runner_function" + str(msg))
+                    jsondata = json.loads(msg.value())
+                    if jsondata["Type"] == "MarketDataMessage":
+                        print("Market Data message received")
+
             except Exception as e:
                 print(e)
 

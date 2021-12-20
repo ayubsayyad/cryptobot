@@ -17,7 +17,7 @@ class Test_Order_Interface:
     def is_initialized(self):
         return self.is_initialized
 
-    def send_order(self, is_buy, qty, price, is_mkt):
+    def send_order(self, crypto_symbol, is_buy, qty, price, is_mkt):
         if not self.initialized:
             return None
 

@@ -1,6 +1,6 @@
 {
     "Type": "MarketDataMessage",
-    "Symbol": "USDTBTC",
+    "Symbol": "BTCUSDT",
     "Price": "49093.21"
 }
 

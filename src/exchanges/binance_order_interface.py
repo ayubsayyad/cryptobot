@@ -1,5 +1,6 @@
 from binance import Client, ThreadedWebsocketManager, ThreadedDepthCacheManager
 from binance.enums import *
+from binance.exceptions import BinanceAPIException
 
 
 class Binance_Order_Interface:
@@ -10,8 +11,8 @@ class Binance_Order_Interface:
         self.initialized = False
         self.orders = []
         try:
-            self.essage.client_api_key
-            self.client = Client(message.client_api_key, sage.client_api_key2, testnet=True)
+            self.message.client_api_key
+            self.client = Client(message.client_api_key, message.client_api_key2, testnet=True)
             self.account = self.client.get_account()
             for balances in self.account["balances"]:
                 if balances['asset'] == 'USDT':
@@ -27,19 +28,20 @@ class Binance_Order_Interface:
     def is_initialized(self):
         return self.is_initialized
 
-    def send_order(self, is_buy, qty, price, is_mkt):
+    def send_order(self, crypto_symbol, is_buy, qty, price, is_mkt):
         if not self.initialized:
             return None
         side = SIDE_BUY
         if not is_buy:
             side = SIDE_SELL
 
+        print(crypto_symbol)
         try:
             order = None
             if is_mkt:
-                order = client.create_order(symbol=self.message.symbol, side=side, type=ORDER_TYPE_MARKET, quantity=qty)
+                order = self.client.create_order(symbol=crypto_symbol, side=side, type=ORDER_TYPE_MARKET, quantity=qty)
             else:
-                order = client.create_order(symbol=self.message.symbol, side=side, type=ORDER_TYPE_LIMIT, timeInForce=TIME_IN_FORCE_GTC, quantity=qty, price=str(price))
+                order = self.lient.create_order(symbol=crypto_symbol, side=side, type=ORDER_TYPE_LIMIT, timeInForce=TIME_IN_FORCE_GTC, quantity=qty, price=str(price))
             if order is not None:
                 self.orders.append(order)
             return order
