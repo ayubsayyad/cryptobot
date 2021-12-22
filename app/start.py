@@ -2,8 +2,6 @@ import os
 import time
 import kafka_helper
 
-
-
 pro = kafka_helper.get_kafka_producer()
 pro.send('Market-Data', key='my key', value={'k': 'v'})
 
