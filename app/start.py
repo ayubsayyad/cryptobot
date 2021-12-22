@@ -17,6 +17,7 @@ print("produced")
 
 consumer = kafka_helper.get_kafka_consumer(topic='cumberland-30347.Market-Data')
 for message in consumer:
-    print(msg.headers.decode("utf-8"))
+    print("message:")
+    print(message.headers.decode("utf-8"))
 
 time.sleep(10)
