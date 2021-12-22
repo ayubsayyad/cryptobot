@@ -1,1 +1,1 @@
-worker: python src/cryptobot.py
+worker: python app/cryptobot.py
