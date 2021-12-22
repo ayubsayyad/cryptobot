@@ -13,11 +13,11 @@ except KafkaError:
     log.exception()
     pass
 
-print("produced")
+print("produced", flush=True)
 
 consumer = kafka_helper.get_kafka_consumer(topic='cumberland-30347.Market-Data')
 for message in consumer:
-    print("message:")
-    print(message.headers.decode("utf-8"))
+    print("message:", flush=True)
+    print(message, flush=True)
 
 time.sleep(10)
