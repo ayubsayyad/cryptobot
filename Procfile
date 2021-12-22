@@ -1,1 +1,1 @@
-worker: python src/start.py
+worker: python src/cryptobot.py

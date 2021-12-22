@@ -1,1 +1,5 @@
-django
+binance==0.3
+confluent_kafka==1.7.0
+python_binance==1.0.15
+PyYAML==6.0
+redis==4.0.2
