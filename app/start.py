@@ -2,12 +2,21 @@ import os
 import time
 import kafka_helper
 
-pro = kafka_helper.get_kafka_producer()
-pro.send('Market-Data', key='my key', value={'k': 'v'})
 
+producer = kafka_helper.get_kafka_producer()
+future = producer.send('cumberland-30347.Market-Data', 'my key')
+# Block for 'synchronous' sends
+try:
+    record_metadata = future.get(timeout=10)
+except KafkaError:
+    # Decide what to do if produce request failed...
+    log.exception()
+    pass
 
-consumer = kafka_helper.get_kafka_consumer(topic='Market-Data')
+print("produced")
+
+consumer = kafka_helper.get_kafka_consumer(topic='cumberland-30347.Market-Data')
 for message in consumer:
-    print(message)
+    print(msg.headers.decode("utf-8"))
 
 time.sleep(10)
