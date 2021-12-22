@@ -1,5 +1,5 @@
 kafka:
-  bootstrap.servers: 'localhost:9092'
+  bootstrap.servers: 'kafka+ssl://ec2-3-220-121-33.compute-1.amazonaws.com:9096,kafka+ssl://ec2-3-208-232-40.compute-1.amazonaws.com:9096,kafka+ssl://ec2-100-24-239-47.compute-1.amazonaws.com:9096,kafka+ssl://ec2-35-168-34-44.compute-1.amazonaws.com:9096,kafka+ssl://ec2-100-25-107-37.compute-1.amazonaws.com:9096,kafka+ssl://ec2-3-234-75-100.compute-1.amazonaws.com:9096,kafka+ssl://ec2-3-227-129-191.compute-1.amazonaws.com:9096,kafka+ssl://ec2-3-231-110-127.compute-1.amazonaws.com:9096'
   group.id: 'mygroup'
   client.id: 'client-1'
   enable.auto.commit: True
