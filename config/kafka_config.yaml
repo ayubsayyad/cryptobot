@@ -3,8 +3,8 @@ kafka:
   group.id: 'mygroup'
   client.id: 'client-1'
   enable.auto.commit: True
-  session.timeout.ms: 6000,
-  security_protocol: 'SSL',
+  session.timeout.ms: 6000
+  security_protocol: 'SSL'
   default.topic.config: 
         auto.offset.reset: 'smallest'
 
