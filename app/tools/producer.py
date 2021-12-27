@@ -8,8 +8,8 @@ import redis
 
 conf = {'bootstrap.servers': ":9092,:9092",
                 'client.id': socket.gethostname()}
-
 producer = Producer(conf)
+
 print(str(producer))
 topic  = sys.argv[1]
 file_to_send  = sys.argv[2]

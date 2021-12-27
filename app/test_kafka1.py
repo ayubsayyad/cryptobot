@@ -1,6 +1,7 @@
 """
 Helper methods for creating the kafka-python KafkaProducer and KafkaConsumer objects.
 """
+import time
 
 import os
 import json
@@ -17,6 +18,20 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
 from kafka import KafkaProducer, KafkaConsumer
+from confluent_kafka import Producer, Consumer, KafkaError
+
+def get_kafka_brokers():
+    """
+    Parses the KAKFA_URL and returns a list of hostname:port pairs in the format
+    that kafka-python expects.
+    """
+    # NOTE: The Kafka environment variables need to be present. If using
+    # Apache Kafka on Heroku, they will be available in your app configuration.
+    if not os.environ.get('KAFKA_URL'):
+        raise RuntimeError('The KAFKA_URL config variable is not set.')
+
+    return ['{}:{}'.format(parsedUrl.hostname, parsedUrl.port) for parsedUrl in
+            [urlparse(url) for url in os.environ.get('KAFKA_URL').split(',')]]
 
 
 def get_kafka_ssl_context():
@@ -78,56 +93,27 @@ def get_kafka_ssl_context():
         # on the ca trust_cert for this purpose.
         ssl_context.check_hostname = False
 
+
+        bot_settings = {}
+        bot_settings['bootstrap.servers'] = 'ec2-100-25-107-37.compute-1.amazonaws.com:9096'
+        bot_settings['group.id'] = 'mygroup'
+        bot_settings['client.id'] = 'client-1'
+        bot_settings['enable.auto.commit'] = True
+        bot_settings['session.timeout.ms'] = 6000
+        bot_settings['security.protocol'] = 'SSL'
+        bot_settings['default.topic.config'] = {'auto.offset.reset':'smallest'}
+        bot_settings['ssl.ca.location'] = cert_file.name
+        bot_settings['ssl.key.location'] = key_file.name
+        bot_settings['ssl.certificate.location'] = cert_file.name
+        bot_settings['ssl.key.password'] = passwd
+
+        kafka_bot_consumer = Consumer(bot_settings)
+        kafka_bot_consumer.subscribe(["Market-Data"])                
+        time.sleep(10)
+
+
     return ssl_context
 
 
-def get_kafka_brokers():
-    """
-    Parses the KAKFA_URL and returns a list of hostname:port pairs in the format
-    that kafka-python expects.
-    """
-    # NOTE: The Kafka environment variables need to be present. If using
-    # Apache Kafka on Heroku, they will be available in your app configuration.
-    if not os.environ.get('KAFKA_URL'):
-        raise RuntimeError('The KAFKA_URL config variable is not set.')
-
-    return ['{}:{}'.format(parsedUrl.hostname, parsedUrl.port) for parsedUrl in
-            [urlparse(url) for url in os.environ.get('KAFKA_URL').split(',')]]
 
 
-def get_kafka_producer(acks='all',
-                       value_serializer=lambda v: json.dumps(v).encode('utf-8')):
-    """
-    Return a KafkaProducer that uses the SSLContext created with create_ssl_context.
-    """
-
-    producer = KafkaProducer(
-        bootstrap_servers=get_kafka_brokers(),
-        security_protocol='SSL',
-        ssl_context=get_kafka_ssl_context(),
-        value_serializer=value_serializer,
-        acks=acks
-    )
-
-    return producer
-
-
-def get_kafka_consumer(topic=None,
-                       value_deserializer=lambda v: json.loads(v.decode('utf-8')),
-                       group_id = ""):
-    """
-    Return a KafkaConsumer that uses the SSLContext created with create_ssl_context.
-    """
-
-    # Create the KafkaConsumer connected to the specified brokers. Use the
-    # SSLContext that is created with create_ssl_context.
-    consumer = KafkaConsumer(
-        topic,
-        bootstrap_servers=get_kafka_brokers(),
-        security_protocol='SSL',
-        ssl_context=get_kafka_ssl_context(),
-        value_deserializer=value_deserializer
-    #    group_id=group_id
-    )
-
-    return consumer

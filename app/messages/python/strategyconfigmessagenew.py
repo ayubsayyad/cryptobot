@@ -1,0 +1,32 @@
+class StrategyConfigNew:
+    def __init__(self, jsondata):
+        self.crypto               = jsondata["Configuration"]["Crypto"]
+        self.qty_unit             = float(jsondata["Configuration"]["QtyUnit"])
+        self.qty_lvl_zero_qty     =  float(jsondata["Configuration"]["Lvl0Qty"])
+        self.exit_percentage      =  float(jsondata["Configuration"]["SellWhenPctRise"])
+        self.levels = []
+        for strategy_data in jsondata["Configuration"]["levels"]:
+            self.levels.append((float(strategy_data["Percentage"]), float(strategy_data["Qty"])))
+        self.is_initialized = False
+        self.entry_price = 0.0
+        self.balance = 0.0
+
+class StrategyConfigMessageNew:
+    def __init__(self, jsondata):
+        self.strategy_type          = jsondata["Type"]
+        self.client_id              = jsondata["clinet-details"]["Client-Id"]
+        self.strategy_plugin        = jsondata["clinet-details"]["Strategy-Plugin"]
+        self.client_api_key         = jsondata["clinet-details"]["Client-Api-Key"]
+        self.client_api_key2        = jsondata["clinet-details"]["Client-Api-Key2"]
+        self.enabled                = jsondata["clinet-details"]["Enabled"]
+        self.exchange_enabled       = jsondata["clinet-details"]["Exchange-Enabled"]
+
+
+        self.configurationsmap = {}
+
+        for config in jsondata["Configurations"]:
+            configMsg = StrategyConfig(config)
+            self.configurationsmap[configMsg.crypto] = configMsg
+
+
+

@@ -1,0 +1,61 @@
+{
+    "Type": "StrategyConfigurationNew",
+
+    "clinet-details": {
+            "Client-Id": "1Dan-Bianance-Bot",
+            "Strategy-Plugin": "BuyDeepSellHighNew",
+            "Client-Api-Key": "aP0q0oEd7q5BPXVOWAans2yssuM2ZtlSDVv8QPOSUqYkxSeACZhnlgdGgsNkRbhC",
+            "Client-Api-Key2": "MHdyNt5uKjfq42oGpo0cUHUDKoZ1evfnZTt4KqwZ004FQnRUBwT9nGV7TrGpXfse",
+            "Enabled": "True",
+            "Exchange-Enabled": "True"
+    },
+
+    "Kafka-Details": {
+            "Kafka-Topic-Config-Update": "Config-Update",
+            "Kafka-Topic-Admin": "Bot-Admin"
+    },
+
+    "Configurations": [
+	    {
+	    "Configuration": {
+		    "Crypto": "BTCUSDT",
+		    "InitialPrice": "50959.03",
+		    "QtyUnit": "5",
+		    "SellWhenPctRise": "5",
+		    "SellPercent": "20",
+		    "levels": [
+			    {
+			    "Qty": "0.1",
+			    "Percentage": "2"
+			    },
+			    {
+			    "Qty": "0.2",
+			    "Percentage": "4"
+			    }
+
+		    ]
+	    }
+	    },
+	    {
+	    "Configuration": {
+		    "Crypto": "BNBBTC",
+		    "InitialPrice": "0.010720",
+		    "QtyUnit": "5",
+		    "SellWhenPctRise": "5",
+		    "SellPercent": "20",
+		    "levels": [
+			    {
+			    "Qty": "0.1",
+			    "Percentage": "2"
+			    },
+			    {
+			    "Qty": "0.2",
+			    "Percentage": "4"
+			    }
+
+		    ]
+	    }
+	    }
+
+    ]
+}

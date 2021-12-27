@@ -13,6 +13,7 @@ class Binance_Order_Interface:
         try:
             self.message.client_api_key
             self.client = Client(message.client_api_key, message.client_api_key2, testnet=True)
+            self.client.stream_get_listen_key
             self.account = self.client.get_account()
             for balances in self.account["balances"]:
                 if balances['asset'] == 'USDT':
