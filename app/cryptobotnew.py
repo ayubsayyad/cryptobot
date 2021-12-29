@@ -230,7 +230,7 @@ class StrategyClass:
                     print("Not dictionary  ***********")
             else:
                 time.sleep(1)
-                print("Queue empty ...")
+                #print("Queue empty ...")
 
 def main(config, queue):
     #f = open(config,)
@@ -253,7 +253,7 @@ if __name__ == "__main__":
     running_bots["bot"] = (proc, queue)
     
     while True:
-        time.sleep(1)
+        time.sleep(10)
         print("Running")
     
 
