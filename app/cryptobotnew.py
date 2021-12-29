@@ -62,7 +62,10 @@ class StrategyClass:
 
     async def send_orders_for_crypto(self):
         for crypto, conf in self.cryptlevels.items():
-            await self.send_orders(crypto, conf)
+            ret = await self.send_orders(crypto, conf)
+            if ret == False:
+                self.cancel_all()
+                break
 
     async def send_orders(self, crypto, conf):
         for level in conf.levels:
@@ -72,8 +75,8 @@ class StrategyClass:
                 print(order)
             else:
                 print("Error sending order")
-                self.cancel_all()
-                break
+                return False
+        return True
 
     async def send_order(self, symbol, side , qty, price):
         order = await self.iface.send_order(symbol, side, ORDER_TYPE_LIMIT, TIME_IN_FORCE_GTC, qty, price)
