@@ -245,7 +245,7 @@ def main(config, queue):
 
 if __name__ == "__main__":
     queue = multiprocessing.Queue()
-    txt = Path('/home/ayub/code/AX/cryptobot/app/messages/json/StrategyConfigurationNew.json').read_text()
+    txt = Path('app/messages/json/StrategyConfigurationNew.json').read_text()
 
     proc = Process(target = main, args=(txt, queue))
     proc.start()
