@@ -38,12 +38,13 @@ class CryptoLevel:
             self.levels.append(lvl)
 
 class StrategyClass:
-    def __init__(self, message, queue):
+    def __init__(self, message, queue, parent_queue):
         self.message = message
         self.p = messaging.kafka_messaging.get_producer()
         self.iface = Binance_Async_Interface(message, queue)
         self.kafka_producer = messaging.kafka_messaging.get_producer()
         self.queue = queue
+        self.parent_queue = parent_queue
         self.cryptlevels = {}
         for conf in self.message.Configurations:
             crypto = conf.Configuration.Crypto
@@ -64,7 +65,7 @@ class StrategyClass:
         for crypto, conf in self.cryptlevels.items():
             ret = await self.send_orders(crypto, conf)
             if ret == False:
-                self.cancel_all()
+                await self.cancel_all()
                 return False
 
     async def send_orders(self, crypto, conf):
@@ -226,49 +227,106 @@ class StrategyClass:
         ret = await self.send_orders_for_crypto()
         if False == ret:
             print("Bot failed to send initial orders, please check reason and restart")
+            message = {}
+
+            
+            message["Type"] = "TerminateMe"
+            message["Client"] = self.message.clinet_details.Client_Id
+            self.parent_queue.put(message)
+
             return
 
+        print("Waiting on queue!")
         while True:
             if not self.queue.empty():
                 msg = self.queue.get()
                 if isinstance(msg, dict):
-                    print(f"Message in queue: {type(msg)} {msg}")
                     await self.process_message(msg)
                 else:
                     print("Not dictionary  ***********")
             else:
-                time.sleep(1)
-                #print("Queue empty ...")
+                time.sleep(5)
+                
 
-def main(config, queue):
+def main(config, queue, parent_queue):
     #f = open(config,)
     x = json.loads(config, object_hook=lambda d: SimpleNamespace(**d))
-    strategy = StrategyClass(x, queue)
+    strategy = StrategyClass(x, queue, parent_queue)
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(strategy.bot_runner())
     loop.close()
 
+def send_message_to_kafka(kafka_producer, json_string):
+    future = kafka_producer.send('cumberland-30347.Bot_Updates', json_string)
+    kafka_producer.flush()
+    print("sent on kafka: cumberland-30347.Bot_Updates")
+
+
+def start_new_bot(running_bots, txt, parent_queue):
+    try:
+        msg = json.loads(txt, object_hook=lambda d: SimpleNamespace(**d))
+        if msg.clinet_details.Client_Id in running_bots:
+            print("Bot already running")
+            return False
+
+        queue = multiprocessing.Queue()
+        proc = Process(target = main, args=(txt, queue, parent_queue))
+        
+        proc.start()
+        running_bots[msg.clinet_details.Client_Id] = (proc, queue)
+        return True
+    except Exception as e:
+        print("exception creating bot")
+        return False
+
+    pass
 
 if __name__ == "__main__":
-    queue = multiprocessing.Queue()
-    txt = Path('app/messages/json/StrategyConfigurationNew.json').read_text()
 
-    proc = Process(target = main, args=(txt, queue))
-    proc.start()
-    running_bots = {}
-    running_bots["bot"] = (proc, queue)
-    
+    parent_queue = multiprocessing.Queue()
+    running_bots = {} 
+#    txt = Path('app/messages/json/StrategyConfigurationNew.json').read_text()
+    #start_new_bot(running_bots, txt, parent_queue)
+
+    kafka_producer = messaging.kafka_messaging.get_producer()
+    consumer = messaging.kafka_messaging.get_consumer('', 'cumberland-30347.Configuration_Update')
+
     while True:
-        time.sleep(10)
-        print("Running")
-    
+        if not parent_queue.empty():
+            msg = parent_queue.get()
+            if isinstance(msg, dict):
+                if msg["Type"] == "TerminateMe":
+                    if msg["Client"] in running_bots:
+                        proc, q = running_bots[msg["Client"]]
+                        print("terminating process")
+                        proc.terminate()
+                        msg["Type"] = "ProcessTerminated"
+                        json_string = json.dumps(msg, indent = 2)
+                        send_message_to_kafka(kafka_producer, json_string)
+            else:
+                print("Not dictionary  ***********")
+        
+        else:
+            kafka_msg = consumer.poll(5)
+            if  0 != len(kafka_msg):
+                for topic, kafka_messages in kafka_msg.items():
+                    for msg in kafka_messages:
+                        jsondata = json.loads(msg.value)
+                        if jsondata["Type"] == "StrategyConfigurationNew":
+                            if start_new_bot(running_bots, msg.value, parent_queue):
+                                print("New bot started")
+            else:
+                print("Running.")
+                for key, val in list(running_bots.items()):
+                    print(val)
+                    if not val[0].is_alive():
+                        res = running_bots.pop(key, None)
+                        if None != res:
+                            print(f"bot terminited, removed key: {key}")
 
-    #loop = asyncio.get_event_loop()
-    #loop.run_until_complete(bot_runner())
-
-
+                time.sleep(5)
 
 
 
