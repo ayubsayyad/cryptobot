@@ -65,7 +65,7 @@ class StrategyClass:
             ret = await self.send_orders(crypto, conf)
             if ret == False:
                 self.cancel_all()
-                break
+                return False
 
     async def send_orders(self, crypto, conf):
         for level in conf.levels:
@@ -223,7 +223,10 @@ class StrategyClass:
         x = threading.Thread(target=self.wait_on_clients)
         x.start()
         time.sleep(1)
-        await self.send_orders_for_crypto()
+        ret = await self.send_orders_for_crypto()
+        if False == ret:
+            print("Bot failed to send initial orders, please check reason and restart")
+            return
 
         while True:
             if not self.queue.empty():
