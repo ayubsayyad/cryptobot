@@ -72,6 +72,8 @@ class StrategyClass:
                 print(order)
             else:
                 print("Error sending order")
+                self.cancel_all()
+                break
 
     async def send_order(self, symbol, side , qty, price):
         order = await self.iface.send_order(symbol, side, ORDER_TYPE_LIMIT, TIME_IN_FORCE_GTC, qty, price)
