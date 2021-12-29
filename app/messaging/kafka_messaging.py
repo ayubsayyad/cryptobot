@@ -6,6 +6,7 @@ import socket
 import sys
 import json
 from pathlib import Path
+import copy
 
 def get_producer(is_heroku=True):
     if is_heroku:
@@ -27,6 +28,7 @@ def get_consumer(group_id, topics, is_heroku=True):
         topic_prefix = os.environ.get('KAFKA_PREFIX')
         [f'{topic_prefix}{topic}' for topic in topic_list]
         consumer = kafka_helper.get_kafka_consumer(topic=topic_list, group_id = group_id)
+        print(topic_list)
         return consumer
     else:
         kafka_settings = config['kafka']

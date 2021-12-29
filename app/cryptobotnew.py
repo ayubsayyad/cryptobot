@@ -13,6 +13,7 @@ from binance import Client, AsyncClient, ThreadedWebsocketManager, ThreadedDepth
 from binance.enums import *
 from binance.exceptions import BinanceAPIException
 from exchanges.binance_async_interface import Binance_Async_Interface
+import  messaging.kafka_messaging
 
 class Levels:
     def __init__(self, level, qty_unit, initial_price):
@@ -23,6 +24,7 @@ class Levels:
         self.sell_executed = False
         self.buy_order = None
         self.sell_order = None
+        
     
 class CryptoLevel:
     def __init__(self, conf):
@@ -38,7 +40,9 @@ class CryptoLevel:
 class StrategyClass:
     def __init__(self, message, queue):
         self.message = message
+        self.p = messaging.kafka_messaging.get_producer()
         self.iface = Binance_Async_Interface(message, queue)
+        self.kafka_producer = messaging.kafka_messaging.get_producer()
         self.queue = queue
         self.cryptlevels = {}
         for conf in self.message.Configurations:
@@ -62,15 +66,30 @@ class StrategyClass:
 
     async def send_orders(self, crypto, conf):
         for level in conf.levels:
-            order = await self.iface.send_order(crypto, SIDE_BUY, ORDER_TYPE_LIMIT, TIME_IN_FORCE_GTC, level.qty_to_trade, level.price_to_send)
+            order = await self.send_order(crypto, SIDE_BUY, level.qty_to_trade, level.price_to_send)
             if order is not None:
                 level.buy_order  = order
                 print(order)
             else:
                 print("Error sending order")
 
-    def send_message_to_kafka(self, string):
-        pass
+    async def send_order(self, symbol, side , qty, price):
+        order = await self.iface.send_order(symbol, side, ORDER_TYPE_LIMIT, TIME_IN_FORCE_GTC, qty, price)
+        #copied_order = copy.deepcopy(order)
+        #copied_order[""]
+        return order
+
+    async def send_sell_order(self, cryptlevel, level, symbol, executedQty, price):
+        qty = max(level.qty_to_trade, executedQty)
+        sell_price = price * (1 + (cryptlevel.sell_percent/100))
+        order = await self.send_order(symbol, SIDE_SELL, qty, sell_price)
+        level.sell_order = order
+        print(f"sell order sent at price: {sell_price}")
+
+    def send_message_to_kafka(self, json_string):
+        future = self.kafka_producer.send('cumberland-30347.Bot_Updates', json_string)
+        self.kafka_producer.flush()
+        print("sent on kafka: cumberland-30347.Bot_Updates")        
 
     def on_account_info(self, message):
         print(message)
@@ -108,12 +127,7 @@ class StrategyClass:
                     return (ret, level)
         return (None, None)
 
-    async def send_sell_order(self, cryptlevel, level, symbol, executedQty, price):
-        qty = max(level.qty_to_trade, executedQty)
-        sell_price = price * (1 + (cryptlevel.sell_percent/100))
-        order = await self.iface.send_order(symbol, SIDE_SELL, ORDER_TYPE_LIMIT, TIME_IN_FORCE_GTC, qty, sell_price)
-        level.sell_order = order
-        print(f"sell order sent at price: {sell_price}")
+
 
     async def if_all_orders_complete_refersh(self, symbol, cryptlevel, conf):
         for level in conf.levels:
@@ -153,7 +167,9 @@ class StrategyClass:
         print("on_execution_report")
         if message["status"] == "FILLED":
             await self.on_fill(message)
-            pass
+
+        json_string = json.dumps(message, indent = 2)
+        self.send_message_to_kafka(json_string)
 
     def on_exchange_response(self, message):
         print(message)

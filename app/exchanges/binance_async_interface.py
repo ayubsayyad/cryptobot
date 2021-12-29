@@ -20,11 +20,9 @@ class Binance_Async_Interface:
         self.exechange_info = None
         self.orders = []
 
-    def send_error_to_queue(self, e):
-        res = {}
+    def send_error_to_queue(self, res):
         res["Type"] = "BinanceErrorOccured"
         res["Client"] = self.message.clinet_details.Client_Id            
-        res["Description"] = str(e)
         self.queue.put(res)
 
     async def create(self):
@@ -39,12 +37,19 @@ class Binance_Async_Interface:
             print(acct_to_send)
             #json_object = json.dumps(acct_to_send, indent = 4)
         except BinanceAPIException as e:
-            self.send_error_to_queue(e)
-            print(e)
+            
+            res = {}
+            res["Description"] = str(e)
+            res["Reason"] = "create"
+            self.send_error_to_queue(res)
+            print(res)
             
         except Exception as e:
-            print(e)
-            self.send_error_to_queue(e)
+            res = {}
+            res["Description"] = str(e)
+            res["Reason"] = "create"
+            self.send_error_to_queue(res)
+            print(res)
         else:
            self.initialized = True
 
@@ -69,6 +74,7 @@ class Binance_Async_Interface:
             order_id = int(res["i"])
             order = await client2.get_order(symbol=symbol, orderId = order_id)
             order["Type"] = "OrderStatus"
+            order["Client"] = self.message.clinet_details.Client_Id        
             self.queue.put(order)
 
     async def wait_on_user(self):
@@ -82,11 +88,17 @@ class Binance_Async_Interface:
                     if res is not None:
                         await self.handle_execution_response(res, client2)
         except BinanceAPIException as e:
-            self.send_error_to_queue(e)
-            print(e)
+            res = {}
+            res["Description"] = str(e)
+            res["Reason"] = "wait_on_user"
+            self.send_error_to_queue(res)
+            print(res)
         except Exception as e:
-            self.send_error_to_queue(e)
-            print(e)
+            res = {}
+            res["Description"] = str(e)
+            res["Reason"] = "wait_on_user"
+            self.send_error_to_queue(res)
+            print(res)
 
         await self.client.close_connection()        
 
@@ -96,12 +108,27 @@ class Binance_Async_Interface:
             order = await self.client.create_order(symbol=crypto_symbol, side=side, type=type, timeInForce=timeInForce, quantity=qty, price=str(price))
             return order
         except BinanceAPIException as e:
-            self.send_error_to_queue(e)
-            print(e)
+            res = {}
+            res["Description"] = str(e)
+            res["Reason"] = "send_order"
+            res["Symbol"] = crypto_symbol
+            res["Side"] = side
+            res["Qty"] = qty
+            res["price"] = price
+            self.send_error_to_queue(res)
+            print(res)
+
             return None
         except Exception as e:
-            self.send_error_to_queue(e)            
-            print(e)
+            res = {}
+            res["Description"] = str(e)
+            res["Reason"] = "send_order"
+            res["Symbol"] = crypto_symbol
+            res["Side"] = side
+            res["Qty"] = qty
+            res["price"] = price
+            self.send_error_to_queue(res)
+            print(res)
             return None
 
 
