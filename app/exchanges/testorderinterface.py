@@ -2,7 +2,7 @@ from binance import Client, ThreadedWebsocketManager, ThreadedDepthCacheManager
 from binance.enums import *
 
 
-class Test_Order_Interface:
+class TestOrderInterface:
     def __init__(self, message):
         self.message = message
         self.client = None
@@ -26,12 +26,7 @@ class Test_Order_Interface:
         else:
             print("Selling:" + str(qty))
 
-
-        order = {}
-        order['status'] = 'FILLED'
-        fills = {}
-        fills['price'] = 49000
-        fills['qty'] = qty
+        order = {'status': 'FILLED'}
+        fills = {'price': 49000, 'qty': qty}
         order['fills'] = [fills]
         return order
-

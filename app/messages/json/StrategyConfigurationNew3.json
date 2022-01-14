@@ -36,26 +36,6 @@
 
 		    ]
 	    }
-	    },
-	    {
-	    "Configuration": {
-		    "Crypto": "BNBBTC",
-			"Level0Qty": "0.01",
-		    "QtyUnit": "5",
-		    "SellWhenPctRise": "5",
-		    "SellPercent": "20",
-		    "levels": [
-			    {
-			    "Qty": "0.1",
-			    "Percentage": "2"
-			    },
-			    {
-			    "Qty": "0.2",
-			    "Percentage": "4"
-			    }
-
-		    ]
-	    }
 	    }
 
     ]

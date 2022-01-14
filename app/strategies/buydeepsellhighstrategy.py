@@ -1,7 +1,7 @@
 from strategies.istrategyinterface import  IStrategyInterface
 from messages.python.strategyconfigmessage import StrategyConfigMessage, StrategyConfig
 from exchanges.binance_order_interface import Binance_Order_Interface
-from exchanges.test_order_interface import Test_Order_Interface
+from exchanges.testorderinterface import TestOrderInterface
 
 from binance.enums import *
 from abc import ABC, abstractmethod
@@ -35,7 +35,7 @@ class BuyDeepSellHighStrategy(IStrategyInterface):
         if not is_test:
             self.exchnage_interface = Binance_Order_Interface(message)
         else:
-            self.exchnage_interface = Test_Order_Interface(message)
+            self.exchnage_interface = TestOrderInterface(message)
 
         self.per_crypto_status = {}
         for key, strategy_confg in message.configurationsmap.items():

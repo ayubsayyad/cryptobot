@@ -3,7 +3,7 @@
 	"IsTestNet": true,
 
     "clinet_details": {
-            "Client_Id": "1Dan_Bianance_Bot",
+            "Client_Id": "2Dan_Bianance_Bot",
             "Strategy_Plugin": "BuyDeepSellHighNew",
             "Client_Api_Key": "aP0q0oEd7q5BPXVOWAans2yssuM2ZtlSDVv8QPOSUqYkxSeACZhnlgdGgsNkRbhC",
             "Client_Api_Key2": "MHdyNt5uKjfq42oGpo0cUHUDKoZ1evfnZTt4KqwZ004FQnRUBwT9nGV7TrGpXfse",
@@ -19,28 +19,8 @@
     "Configurations": [
 	    {
 	    "Configuration": {
-		    "Crypto": "BTCUSDT",
-		    "Level0Qty": "0.01",
-		    "QtyUnit": "0.5",
-		    "SellWhenPctRise": "5",
-		    "SellPercent": "20",
-		    "levels": [
-			    {
-			    "Qty": "0.003",
-			    "Percentage": "2"
-			    },
-			    {
-			    "Qty": "0.001",
-			    "Percentage": "4"
-			    }
-
-		    ]
-	    }
-	    },
-	    {
-	    "Configuration": {
-		    "Crypto": "BNBBTC",
-			"Level0Qty": "0.01",
+		    "Crypto": "BNBUSDT",
+			"Level0Qty": "0.1",
 		    "QtyUnit": "5",
 		    "SellWhenPctRise": "5",
 		    "SellPercent": "20",
@@ -56,7 +36,6 @@
 
 		    ]
 	    }
-	    }
-
+	}
     ]
 }

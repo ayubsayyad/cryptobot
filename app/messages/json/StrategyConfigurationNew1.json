@@ -11,36 +11,11 @@
             "Exchange_Enabled": "True"
     },
 
-    "Kafka_Details": {
-            "Kafka_Topic_Config_Update": "Config_Update",
-            "Kafka_Topic_Admin": "Bot_Admin"
-    },
-
     "Configurations": [
 	    {
 	    "Configuration": {
-		    "Crypto": "BTCUSDT",
-		    "Level0Qty": "0.01",
-		    "QtyUnit": "0.5",
-		    "SellWhenPctRise": "5",
-		    "SellPercent": "20",
-		    "levels": [
-			    {
-			    "Qty": "0.003",
-			    "Percentage": "2"
-			    },
-			    {
-			    "Qty": "0.001",
-			    "Percentage": "4"
-			    }
-
-		    ]
-	    }
-	    },
-	    {
-	    "Configuration": {
-		    "Crypto": "BNBBTC",
-			"Level0Qty": "0.01",
+		    "Crypto": "BNBUSDT",
+			"Level0Qty": "0.1",
 		    "QtyUnit": "5",
 		    "SellWhenPctRise": "5",
 		    "SellPercent": "20",
@@ -56,7 +31,6 @@
 
 		    ]
 	    }
-	    }
-
+	}
     ]
 }

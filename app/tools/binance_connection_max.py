@@ -9,7 +9,26 @@ from binance import Client, AsyncClient, ThreadedWebsocketManager, ThreadedDepth
 from binance.enums import *
 from binance.exceptions import BinanceAPIException
 
-class Binance_Async_Interface:
+max_conn = 100
+
+clients = {}
+
+Client_Api_Key = "aP0q0oEd7q5BPXVOWAans2yssuM2ZtlSDVv8QPOSUqYkxSeACZhnlgdGgsNkRbhC"
+Client_Api_Key2 = "MHdyNt5uKjfq42oGpo0cUHUDKoZ1evfnZTt4KqwZ004FQnRUBwT9nGV7TrGpXfse"
+
+for idx in range(0, 100, 1):
+    try:
+        print(idx)
+        client2 = Client(Client_Api_Key,  Client_Api_Key2, testnet=True)
+        clients[idx] = client2
+        account = client2.get_account()
+        print(account)
+        time.sleep(5)
+    except Exception as e:
+        print(e)
+
+
+""" class Binance_Async_Interface:
     def __init__(self, message, queue):
         self.message = message
         self.queue = queue
@@ -27,7 +46,7 @@ class Binance_Async_Interface:
 
     async def create(self):
         try:
-            self.client = await AsyncClient.create(self.message.clinet_details.Client_Api_Key, self.message.clinet_details.Client_Api_Key2, testnet=self.message.IsTestNet)
+            c
             self.account = await self.client.get_account()
             self.exechange_info = await self.client.get_exchange_info()
             acct_to_send = copy.deepcopy(self.account)
@@ -65,7 +84,6 @@ class Binance_Async_Interface:
         res["Client"] = self.message.clinet_details.Client_Id
         res["Type"] = "OrderCancelResponse"
         self.queue.put(res)
-        
         
 
     async def handle_execution_response(self, res, client2):
@@ -118,10 +136,6 @@ class Binance_Async_Interface:
 
         await self.client.close_connection()        
 
-    async def get_client_trades(self, symbol):
-        trades = await self.client.get_my_trades(symbol=symbol)
-        return trades
-
     async def send_mkt_order(self, crypto_symbol, side, qty):
         try:
             order = await self.client.create_order(symbol=crypto_symbol, side=side, type=ORDER_TYPE_MARKET,  quantity=qty)
@@ -134,7 +148,7 @@ class Binance_Async_Interface:
             res["Side"] = side
             res["Qty"] = qty
             self.send_error_to_queue(res)
-            print(res)
+            #print(res)
 
             return None
         except Exception as e:
@@ -145,7 +159,7 @@ class Binance_Async_Interface:
             res["Side"] = side
             res["Qty"] = qty
             self.send_error_to_queue(res)
-            print(res)
+            #print(res)
             return None
 
     async def send_order(self, crypto_symbol, side, type, timeInForce, qty, price):
@@ -162,7 +176,7 @@ class Binance_Async_Interface:
             res["Qty"] = qty
             res["price"] = price
             self.send_error_to_queue(res)
-            print(res)
+            #print(res)
 
             return None
         except Exception as e:
@@ -174,7 +188,7 @@ class Binance_Async_Interface:
             res["Qty"] = qty
             res["price"] = price
             self.send_error_to_queue(res)
-            print(res)
+            #print(res)
             return None
 
 
@@ -183,7 +197,7 @@ class Binance_Async_Interface:
             orders = await self.client.get_open_orders()
             for ord in orders:
                 res = await self.client.cancel_order(symbol=ord['symbol'], orderId=ord['orderId'])
-                await self.send_order_cancel_status(res)
+                self.send_order_cancel_status(res)
                 #print(res)
             return True
         except BinanceAPIException as e:
@@ -204,3 +218,4 @@ class Binance_Async_Interface:
         loop.run_until_complete(self.wait_on_user())
         loop.close()
         
+ """
