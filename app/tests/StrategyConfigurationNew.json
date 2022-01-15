@@ -2,61 +2,52 @@
     "Type": "StrategyConfigurationNew",
 	"IsTestNet": true,
 
-    "clinet_details": {
+    "client_details": {
             "Client_Id": "1Dan_Bianance_Bot",
             "Strategy_Plugin": "BuyDeepSellHighNew",
             "Client_Api_Key": "aP0q0oEd7q5BPXVOWAans2yssuM2ZtlSDVv8QPOSUqYkxSeACZhnlgdGgsNkRbhC",
-            "Client_Api_Key2": "MHdyNt5uKjfq42oGpo0cUHUDKoZ1evfnZTt4KqwZ004FQnRUBwT9nGV7TrGpXfse",
-            "Enabled": "True",
-            "Exchange_Enabled": "True"
-    },
-
-    "Kafka_Details": {
-            "Kafka_Topic_Config_Update": "Config_Update",
-            "Kafka_Topic_Admin": "Bot_Admin"
+            "Client_Api_Key2": "MHdyNt5uKjfq42oGpo0cUHUDKoZ1evfnZTt4KqwZ004FQnRUBwT9nGV7TrGpXfse"
     },
 
     "Configurations": [
 	    {
 	    "Configuration": {
-		    "Crypto": "BTCUSDT",
-		    "Level0Qty": "0.01",
-		    "QtyUnit": "0.5",
-		    "SellWhenPctRise": "5",
-		    "SellPercent": "20",
-		    "levels": [
+		    "Symbol": "BTCUSDT",
+		    "LevelZeroUSDBudget": "100",
+		    "BudgetMultiplier": "2",
+		    "SellPercentage": "5",
+		    "PercentQtyToSell": "20",
+		    "Levels": [
 			    {
-			    "Qty": "0.003",
-			    "Percentage": "2"
+			    "USDBudget": "100",
+			    "DownPercentage": "2"
 			    },
 			    {
-			    "Qty": "0.001",
-			    "Percentage": "4"
+			    "USDBudget": "200",
+			    "DownPercentage": "4"
 			    }
-
 		    ]
 	    }
 	    },
 	    {
 	    "Configuration": {
-		    "Crypto": "BNBBTC",
-			"Level0Qty": "0.01",
-		    "QtyUnit": "5",
-		    "SellWhenPctRise": "5",
-		    "SellPercent": "20",
-		    "levels": [
+		    "Symbol": "BNBUSDT",
+		    "LevelZeroUSDBudget": "100",
+		    "BudgetMultiplier": "2",
+		    "SellPercentage": "5",
+		    "PercentQtyToSell": "20",
+		    "Levels": [
 			    {
-			    "Qty": "0.1",
-			    "Percentage": "2"
+			    "USDBudget": "300",
+			    "DownPercentage": "2"
 			    },
 			    {
-			    "Qty": "0.2",
-			    "Percentage": "4"
+			    "USDBudget": "50",
+			    "DownPercentage": "4"
 			    }
-
 		    ]
 	    }
 	    }
-
     ]
 }
+

@@ -21,6 +21,13 @@ class DummyExchangeInterface:
         self.orders = []
         self.initialized = True
 
+    def get_price_precision(self, crypto):
+        return '0.00000100'.find('1') - 1
+
+    def get_qty_precision(self, crypto):
+        return '0.00000100'.find('1') - 1
+        return None
+
     def send_error_to_queue(self, res):
         res["Type"] = "BinanceErrorOccurred"
         res["Client"] = self.message.clinet_details.Client_Id
@@ -64,8 +71,14 @@ class DummyExchangeInterface:
     def wait_on_user(self):
         pass
 
-    def send_order(self, crypto_symbol, side, type, timeInForce, qty, price):
-        pass
+    def send_order(self, crypto_symbol, side, order_type, time_in_force, qty, price):
+        order_response = {'symbol': crypto_symbol, 'orderId': 1, 'orderListId': -1,
+                          'clientOrderId': 'wPJ4k9kJJ6tG3i2vstcwIb', 'transactTime': 1641361224365,
+                          'price': '0.00000000',
+                          'origQty': str(qty), 'executedQty': str(qty), 'cummulativeQuoteQty': '231.26485000',
+                          'status': 'NEW', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': side}
+
+        return order_response
 
     def bridge_func(self):
         loop = asyncio.new_event_loop()

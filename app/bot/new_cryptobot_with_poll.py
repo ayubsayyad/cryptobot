@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from binance import Client, AsyncClient, ThreadedWebsocketManager, ThreadedDepthCacheManager, BinanceSocketManager
 from binance.enums import *
 from binance.exceptions import BinanceAPIException
-from exchanges.binance_poll_interface import Binance_Poll_Interface
+from exchanges.binance_poll_interface import BinancePollInterface
 from messaging.kafka_messaging_interface import KafkaMessagingConsumer, KafkaMessagingProducer
 import bot_logger
 

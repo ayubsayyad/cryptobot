@@ -6,7 +6,7 @@ from messaging.kafka_messaging_interface import KafkaMessagingProducer, KafkaMes
     DummpMessagingProducer, DummyMessagingConsumer
 
 from bot.bot_controller import BotController
-from bot.new_cryptobot_with_poll import Binance_Poll_Interface
+from bot.new_cryptobot_with_poll import BinancePollInterface
 from exchanges.dummy_exchange_interface import DummyExchangeInterface
 
 import threading
@@ -56,7 +56,28 @@ class TestBotStart(unittest.TestCase):
         time.sleep(10)
         bot_controller.started = False
         x.join()
-        
+
+    def test_bot_start_fills(self):
+        configuration_update_topic = 'cumberland-30347.Configuration_Update'
+        bot_update_topic = 'cumberland-30347.Bot_Updates'
+
+        bot_controller = BotController(configuration_update_topic, bot_update_topic, DummyMessagingConsumer,
+                                       DummpMessagingProducer, DummyExchangeInterface)
+
+        message_consumer = bot_controller.message_consumer
+        message_producer = bot_controller.message_producer
+
+        x = threading.Thread(target=bot_controller.run_controller_loop)
+        x.start()
+        time.sleep(1)
+        self.assertTrue(bot_controller.started)
+
+        txt = Path("StrategyConfigurationNew.json").read_text()
+        message_consumer.message_to_send = txt
+
+        time.sleep(10)
+        bot_controller.started = False
+        x.join()
 
 
 if __name__ == '__main__':

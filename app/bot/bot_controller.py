@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from binance import Client, AsyncClient, ThreadedWebsocketManager, ThreadedDepthCacheManager, BinanceSocketManager
 from binance.enums import *
 from binance.exceptions import BinanceAPIException
-from exchanges.binance_poll_interface import Binance_Poll_Interface
+from exchanges.binance_poll_interface import BinancePollInterface
 from messaging.kafka_messaging_interface import KafkaMessagingConsumer, KafkaMessagingProducer
 import bot_logger
 import bot_with_oll
@@ -46,13 +46,18 @@ class BotController:
         self.message_producer.send(self.bot_update_topic, json_string)
 
     def start_new_bot(self, msg):
+        message = json.loads(msg, object_hook=lambda d: SimpleNamespace(**d))
+        if message.client_details.Client_Id in self.running_bots:
+            self.logger.warning("Bot already running")
+            return False
+
         bot_queue = multiprocessing.Queue()
         print(f"starting new bot!!!! : {msg} \n")
-        message = json.loads(msg, object_hook=lambda d: SimpleNamespace(**d))
+
         proc = Process(target=bot_with_oll.bot_main, args=(msg, bot_queue, self.parent_queue,
                                                            self.bot_exchange_interface, self.message_produce_interface))
         proc.start()
-        self.running_bots[message.clinet_details.Client_Id] = (proc, bot_queue)
+        self.running_bots[message.client_details.Client_Id] = (proc, bot_queue)
         return True
 
     def run_controller_loop(self):
@@ -94,7 +99,7 @@ class BotController:
                             self.logger.info(val)
                             if not val[0].is_alive():
                                 res = self.running_bots.pop(key, None)
-                                if None != res:
+                                if res:
                                     self.logger.info(f"bot terminated, removed key: {key}")
 
                         time.sleep(5)
