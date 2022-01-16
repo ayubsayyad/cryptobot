@@ -93,6 +93,9 @@ class BinancePollInterface:
             # print(res)
             return None
 
+    def get_client_order(self, ord_symbol, order_id):
+        return self.client.get_order(symbol=ord_symbol, orderId=order_id)
+
     def send_order(self, crypto_symbol, side, order_type, time_in_force, qty, price):
         try:
             price = round(price, self.get_price_precision(crypto_symbol))
@@ -112,13 +115,14 @@ class BinancePollInterface:
             self.send_error_to_queue(res)
             return None
 
-    def cancel_all(self):
+    def cancel_all(self, symbol):
         try:
             orders = self.client.get_open_orders()
             for order in orders:
-                res = self.client.cancel_order(symbol=order['symbol'], orderId=order['orderId'])
-                self.send_order_cancel_status(res)
-                # print(res)
+                if order['symbol'] == symbol:
+                    res = self.client.cancel_order(symbol=order['symbol'], orderId=order['orderId'])
+                    self.send_order_cancel_status(res)
+                    # print(res)
             return True
         except BinanceAPIException as e:
             self.send_error_to_queue(e)

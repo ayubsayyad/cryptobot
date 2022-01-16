@@ -55,7 +55,7 @@ class DummyExchangeInterface:
 
         return order_response
 
-    def cancel_all(self):
+    def cancel_all(self, symbol):
         return True
 
         # print('cancel_all')

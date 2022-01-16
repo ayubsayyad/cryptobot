@@ -64,6 +64,8 @@ class SymbolConfiguration:
         self.sell_percentage = sell_percentage
         self.percentage_qty_to_sell = percentage_qty_to_sell
 
+        self.processed_fill_ids = set()
+
         self.level_zero = Level(self.level_zero_budget * self.budget_multiplier, self.sell_percentage, True)
         self.levels = []
         for level in levels:
@@ -124,20 +126,21 @@ class StrategyClassPoll:
     def send_initial_orders_for_all_symbols(self):
         for symbol in self.symbol_configurations.keys():
             if not self.send_initial_orders_for_symbol(symbol):
-                pass
-        pass
+                return False
+
+        return True
 
     def refresh_bot_for_symbol(self, symbol):
         self.cancel_all_open_orders(symbol)
         self.send_initial_orders_for_symbol(symbol)
 
     def cancel_all_open_orders(self, symbol):
-        self.exchange_interface.cancel_all()
+        self.exchange_interface.cancel_all(symbol)
 
     def get_quantity_to_sell(self, symbol_configuration, level, executed_qty, is_level_zero):
-        return executed_qty
+        return executed_qty * (100 / symbol_configuration.percentage_qty_to_sell)
 
-    def send_sell_on_buy_complete(self, symbol, level, side, executed_qty, executed_price, fill_id, is_level_zero):
+    def send_sell_on_buy_complete(self, symbol, level, side, executed_qty, executed_price, is_level_zero):
         symbol_configuration = self.symbol_configurations.get(symbol)
         qty_to_sell = self.get_quantity_to_sell(symbol_configuration, level, executed_qty, is_level_zero)
         sell_price = executed_price * (1 + (symbol_configuration.sell_percentage / 100))
@@ -150,6 +153,7 @@ class StrategyClassPoll:
             print(f"Error sending Sell order: {symbol}")
             return None
 
+        level.sell_order = order
         return order
 
     def check_if_all_orders_compete(self, symbol):
@@ -165,34 +169,22 @@ class StrategyClassPoll:
             return
         self.refresh_bot_for_symbol(symbol)
 
-    def on_fill(self, symbol, level, side, executed_qty, executed_price, fill_id, is_level_zero):
-        if fill_id in level.fill_ids:
-            print(f"Fill id already processed {fill_id}")
-            return True
-
-        level.fill_ids.add(fill_id)
-
+    def on_fill(self, symbol, level, side, executed_qty, is_level_zero):
         if side == SIDE_BUY:
             level.buy_executed_qty += executed_qty
-            if level.buy_executed_qty < level.buy_qty:
-                print(f"partial fill {fill_id}")
-                return True
         elif side == SIDE_SELL:
             level.sell_executed_qty += executed_qty
-            if level.sell_executed_qty < level.sell_qty:
-                print(f"partial fill {fill_id}")
-                return True
 
         if is_level_zero:
             if side == SIDE_SELL:
                 level.sell_executed = True
                 self.refresh_bot_for_symbol(symbol)
             elif side == SIDE_BUY:
-                self.send_sell_on_buy_complete(symbol, level, side, executed_qty, fill_id, is_level_zero)
+                self.send_sell_on_buy_complete(symbol, level, side, executed_qty, is_level_zero)
         else:
             if side == SIDE_BUY:
                 level.buy_executed = True
-                self.send_sell_on_buy_complete(symbol, level, side, executed_qty, fill_id, is_level_zero)
+                self.send_sell_on_buy_complete(symbol, level, side, executed_qty, is_level_zero)
             elif side == SIDE_SELL:
                 level.sell_executed = True
                 self.refresh_if_all_sell_completed(symbol)
@@ -235,12 +227,39 @@ class StrategyClassPoll:
             level.buy_qty = rounded_qty_to_buy
             level.buy_order = order
 
+        # process the fill for first order as its executed as market order
+        self.on_fill(symbol, symbol_configuration.level_zero, SIDE_BUY, executed_qty, True)
+
         return True
+
+    def poll_for_fills(self):
+        for symbol, symbol_configuration in self.symbol_configurations.items():
+            if symbol_configuration.level_zero.sell_order and not symbol_configuration.level_zero.sell_executed:
+                order_id = int(symbol_configuration.level_zero.sell_order["orderId"])
+                order = self.exchange_interface.get_client_order(symbol, order_id)
+                if order and order['status'] == 'FILLED':
+                    self.on_fill(symbol, symbol_configuration.level_zero, SIDE_SELL, float(order["executedQty"]), True)
+                    # this will refresh bot as per our logic to refresh if sell of level zero is executed
+                    break
+            for level in symbol_configuration.levels:
+                if level.sell_order and not level.sell_executed:
+                    order_id = int(level.sell_order["orderId"])
+                    order = self.exchange_interface.get_client_order(symbol, order_id)
+                    if order and order['status'] == 'FILLED':
+                        self.on_fill(symbol, symbol_configuration.level_zero, SIDE_SELL, float(order["executedQty"]),
+                                     False)
+
+                if level.buy_order and not level.buy_executed:
+                    order_id = int(level.sell_order["orderId"])
+                    order = self.exchange_interface.get_client_order(symbol, order_id)
+                    if order and order['status'] == 'FILLED':
+                        self.on_fill(symbol, symbol_configuration.level_zero, SIDE_BUY, float(order["executedQty"]),
+                                     False)
 
     def process_message(self, message_dict):
         print(f"Processing message: {message_dict['Type']} {self.parent_queue}")
 
-    def bot_runner(self):
+    def initialize_bot(self):
         self.create_connection()
         if not self.exchange_interface.initialized:
             print("Error running binance interface")
@@ -261,6 +280,9 @@ class StrategyClassPoll:
             print(symbol_configuration.Configuration.Symbol)
 
         self.send_initial_orders_for_all_symbols()
+
+    def bot_runner(self):
+
         while True:
             try:
                 if not self.update_queue.empty():
@@ -271,6 +293,7 @@ class StrategyClassPoll:
                         print("Not dictionary  ***********")
                 else:
                     print("From bot process")
+                    self.poll_for_fills()
                     time.sleep(5)
             except Exception as e:
                 print(f"Error occur in bot: {e}")
