@@ -1,2 +1,2 @@
 #worker: python app/cryptobot.py -c config/kafka_config.yaml
-worker: python app/cryptobotnew.py
+worker: python app/bot/bot_controller.py
