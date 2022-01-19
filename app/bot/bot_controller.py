@@ -45,6 +45,15 @@ class BotController:
     def send_message(self, json_string):
         self.message_producer.send(self.bot_update_topic, json_string)
 
+    def update_bot_configuration(self, msg):
+        message = json.loads(msg, object_hook=lambda d: SimpleNamespace(**d))
+        if message.client_details.Client_Id not in self.running_bots:
+            self.logger.warning("Bot not running")
+            return False
+        message_to_send = {'Type': "StrategyConfigurationUpdate", 'Value': msg}
+        proc,  bot_queue = self.running_bots[message.client_details.Client_Id]
+        bot_queue.put(message_to_send)
+
     def start_new_bot(self, msg):
         message = json.loads(msg, object_hook=lambda d: SimpleNamespace(**d))
         if message.client_details.Client_Id in self.running_bots:
@@ -54,7 +63,7 @@ class BotController:
         bot_queue = multiprocessing.Queue()
         print(f"starting new bot!!!! : {msg} \n")
 
-        proc = Process(target=bot_with_oll.bot_main, args=(msg, bot_queue, self.parent_queue,
+        proc = Process(target=bot_with_oll.bot_main, args=(msg, bot_queue, self.parent_queue, self.bot_update_topic,
                                                            self.bot_exchange_interface, self.message_produce_interface))
         proc.start()
         self.running_bots[message.client_details.Client_Id] = (proc, bot_queue)
@@ -89,6 +98,10 @@ class BotController:
                                 if json_data["Type"] == "StrategyConfigurationNew":
                                     if self.start_new_bot(msg.value):
                                         self.logger.warning("New bot started")
+                                if json_data["Type"] == "StrategyConfigurationUpdate":
+                                    if self.update_bot_configuration(msg.value):
+                                        self.logger.warning("New bot started")
+
                                 if json_data["Type"] == "StopTheBotController":
                                     self.logger.warning("Stopping Bot Controller")
                                     self.stop_all_running_bots()
@@ -116,5 +129,5 @@ if __name__ == "__main__":
     bot_update_topic = 'cumberland-30347.Bot_Updates'
 
     bot_controller = BotController(configuration_update_topic, bot_update_topic, KafkaMessagingConsumer,
-                                   KafkaMessagingProducer, Binance_Poll_Interface)
+                                   KafkaMessagingProducer, BinancePollInterface)
     bot_controller.run_controller_loop()

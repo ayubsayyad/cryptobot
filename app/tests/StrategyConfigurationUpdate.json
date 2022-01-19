@@ -1,0 +1,31 @@
+{
+    "Type": "StrategyConfigurationUpdate",
+    "IsTestNet": true,
+
+    "client_details": {
+            "Client_Id": "1Dan_Bianance_Bot"
+    },
+
+    "Configurations": [
+            {
+            "Configuration": {
+                    "Symbol": "MATICUSDT",
+                    "LevelZeroUSDBudget": "100",
+                    "BudgetMultiplier": "2",
+                    "SellPercentage": "5",
+                    "PercentQtyToSell": "20",
+                    "Levels": [
+                            {
+                            "USDBudget": "100",
+                            "DownPercentage": "2"
+                            },
+                            {
+                            "USDBudget": "200",
+                            "DownPercentage": "4"
+                            }
+                    ]
+            }
+            }
+    ]
+}
+

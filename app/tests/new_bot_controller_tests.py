@@ -1,11 +1,14 @@
+import multiprocessing
 import unittest
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 from messaging.kafka_messaging_interface import KafkaMessagingProducer, KafkaMessagingConsumer, \
     DummpMessagingProducer, DummyMessagingConsumer
 
 from bot.bot_controller import BotController
+from bot.bot_with_oll import StrategyClassPoll
 from bot.new_cryptobot_with_poll import BinancePollInterface
 from exchanges.dummy_exchange_interface import DummyExchangeInterface
 
@@ -17,13 +20,13 @@ class TestBotStart(unittest.TestCase):
     def test_bot_controller_start(self):
         configuration_update_topic = 'cumberland-30347.Configuration_Update'
         bot_update_topic = 'cumberland-30347.Bot_Updates'
-    
+
         bot_controller = BotController(configuration_update_topic, bot_update_topic, DummyMessagingConsumer,
                                        DummpMessagingProducer, DummyExchangeInterface)
 
         message_consumer = bot_controller.message_consumer
         message_producer = bot_controller.message_producer
-              
+
         x = threading.Thread(target=bot_controller.run_controller_loop)
         x.start()
         time.sleep(1)
@@ -38,13 +41,13 @@ class TestBotStart(unittest.TestCase):
     def test_bot_start(self):
         configuration_update_topic = 'cumberland-30347.Configuration_Update'
         bot_update_topic = 'cumberland-30347.Bot_Updates'
-    
+
         bot_controller = BotController(configuration_update_topic, bot_update_topic, DummyMessagingConsumer,
                                        DummpMessagingProducer, DummyExchangeInterface)
 
         message_consumer = bot_controller.message_consumer
         message_producer = bot_controller.message_producer
-              
+
         x = threading.Thread(target=bot_controller.run_controller_loop)
         x.start()
         time.sleep(1)
@@ -78,6 +81,15 @@ class TestBotStart(unittest.TestCase):
         time.sleep(10)
         bot_controller.started = False
         x.join()
+
+    def test_bot(self):
+        txt = Path("StrategyConfigurationNew.json").read_text()
+        message = json.loads(txt, object_hook=lambda d: SimpleNamespace(**d))
+        queue = multiprocessing.Queue()
+        parent_queue = multiprocessing.Queue()
+        strategy = StrategyClassPoll(message, queue, parent_queue, DummyExchangeInterface, DummpMessagingProducer)
+        ret = strategy.initialize_bot()
+        self.assertTrue(ret)
 
 
 if __name__ == '__main__':
