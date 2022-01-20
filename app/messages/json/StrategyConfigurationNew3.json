@@ -2,7 +2,7 @@
     "Type": "StrategyConfigurationNew",
 	"IsTestNet": true,
 
-    "clinet_details": {
+    "client_details": {
             "Client_Id": "1Dan_Bianance_Bot",
             "Strategy_Plugin": "BuyDeepSellHighNew",
             "Client_Api_Key": "aP0q0oEd7q5BPXVOWAans2yssuM2ZtlSDVv8QPOSUqYkxSeACZhnlgdGgsNkRbhC",

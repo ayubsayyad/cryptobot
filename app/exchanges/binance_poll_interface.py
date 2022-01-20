@@ -23,7 +23,7 @@ class BinancePollInterface:
 
     def send_error_to_queue(self, res):
         res["Type"] = "BinanceErrorOccurred"
-        res["Client"] = self.message.clinet_details.Client_Id
+        res["Client"] = self.message.client_details.Client_Id
         self.queue.put(res)
 
     def create(self):
@@ -72,7 +72,7 @@ class BinancePollInterface:
         return None
 
     def send_order_cancel_status(self, res):
-        res["Client"] = self.message.clinet_details.Client_Id
+        res["Client"] = self.message.client_details.Client_Id
         res["Type"] = "OrderCancelResponse"
         self.queue.put(res)
 

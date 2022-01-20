@@ -282,7 +282,7 @@ class StrategyClass:
             message = {}
 
             message["Type"] = "TerminateMe"
-            message["Client"] = self.message.clinet_details.Client_Id
+            message["Client"] = self.message.client_details.Client_Id
             self.parent_queue.put(message)
 
             return
@@ -322,7 +322,7 @@ def send_message_to_kafka(logger, kafka_producer, json_string):
 def start_new_bot(logger, running_bots, txt, parent_queue):
     try:
         msg = json.loads(txt, object_hook=lambda d: SimpleNamespace(**d))
-        if msg.clinet_details.Client_Id in running_bots:
+        if msg.client_details.Client_Id in running_bots:
             logger.warning("Bot already running")
             return False
 
@@ -330,7 +330,7 @@ def start_new_bot(logger, running_bots, txt, parent_queue):
         proc = Process(target = main, args=(txt, queue, parent_queue))
         
         proc.start()
-        running_bots[msg.clinet_details.Client_Id] = (proc, queue)
+        running_bots[msg.client_details.Client_Id] = (proc, queue)
         return True
     except Exception as e:
         logger.warning("exception creating bot")

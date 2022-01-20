@@ -267,7 +267,7 @@ class StrategyClassPoll:
         ret = self.send_orders_for_crypto()
         if not ret:
             print("Bot failed to send initial orders, please check reason and restart")
-            message = {"Type": "TerminateMe", "Client": self.message.clinet_details.Client_Id}
+            message = {"Type": "TerminateMe", "Client": self.message.client_details.Client_Id}
             self.parent_queue.put(message)
             return
 

@@ -41,7 +41,7 @@ for idx in range(0, 100, 1):
 
     def send_error_to_queue(self, res):
         res["Type"] = "BinanceErrorOccured"
-        res["Client"] = self.message.clinet_details.Client_Id
+        res["Client"] = self.message.client_details.Client_Id
         self.queue.put(res)
 
     async def create(self):
@@ -51,7 +51,7 @@ for idx in range(0, 100, 1):
             self.exechange_info = await self.client.get_exchange_info()
             acct_to_send = copy.deepcopy(self.account)
             acct_to_send["Type"] = "ExchangeResponseAccount"
-            acct_to_send["Client"] = self.message.clinet_details.Client_Id
+            acct_to_send["Client"] = self.message.client_details.Client_Id
             self.queue.put(acct_to_send)
             #print(acct_to_send)
             #json_object = json.dumps(acct_to_send, indent = 4)
@@ -81,13 +81,13 @@ for idx in range(0, 100, 1):
 
 
     async def send_order_cancel_status(self, res):
-        res["Client"] = self.message.clinet_details.Client_Id
+        res["Client"] = self.message.client_details.Client_Id
         res["Type"] = "OrderCancelResponse"
         self.queue.put(res)
         
 
     async def handle_execution_response(self, res, client2):
-        res["Client"] = self.message.clinet_details.Client_Id        
+        res["Client"] = self.message.client_details.Client_Id        
         if res["e"] == "outboundAccountPosition":
             res["Type"] = "ExchangeResponseAccount"
             self.queue.put(res)
@@ -100,7 +100,7 @@ for idx in range(0, 100, 1):
             order_id = int(res["i"])
             order = await client2.get_order(symbol=symbol, orderId = order_id)
             order["Type"] = "OrderStatus"
-            order["Client"] = self.message.clinet_details.Client_Id        
+            order["Client"] = self.message.client_details.Client_Id        
             order["LastExcutionPrice"] = res["L"]
             order["CurrentStatus"] = res["X"]
             self.queue.put(order)
@@ -109,7 +109,7 @@ for idx in range(0, 100, 1):
 
     async def wait_on_user(self):
         try:
-            client2 = await AsyncClient.create(self.message.clinet_details.Client_Api_Key, self.message.clinet_details.Client_Api_Key2, testnet=self.message.IsTestNet)
+            client2 = await AsyncClient.create(self.message.client_details.Client_Api_Key, self.message.client_details.Client_Api_Key2, testnet=self.message.IsTestNet)
             binance_socket_manager = BinanceSocketManager(client2)
             user_socket = binance_socket_manager.user_socket()
             async with user_socket as scoped_user_socket:
