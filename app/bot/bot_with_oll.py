@@ -304,16 +304,16 @@ class StrategyClassPoll:
 
     def process_exchange_response_account(self, message_dict):
         json_string = json.dumps(message_dict, indent=2)
-        self.self.messaging_interface.send(self.bot_update_topic, json_string)
+        self.messaging_interface.send(self.bot_update_topic, json_string)
 
     def process_error_message(self, message_dict):
         json_string = json.dumps(message_dict, indent=2)
-        self.self.messaging_interface.send(self.bot_update_topic, json_string)
+        self.messaging_interface.send(self.bot_update_topic, json_string)
 
     def process_account_message(self, message_dict):
         json_string = json.dumps(message_dict, indent=2)
         print(json_string)
-        self.self.messaging_interface.send(self.bot_update_topic, json_string)
+        self.messaging_interface.send(self.bot_update_topic, json_string)
 
     def process_message(self, message_dict):
         print(message_dict)
