@@ -265,7 +265,7 @@ class StrategyClassPoll:
                     order = self.exchange_interface.get_client_order(symbol, order_id)
                     print(f" Level  Order Sell : {order}")
                     if order and order['status'] == 'FILLED':
-                        self.on_fill(symbol, symbol_configuration.level_zero, SIDE_SELL,
+                        self.on_fill(symbol, symbol_configuration.level, SIDE_SELL,
                                      float(order["executedQty"]), float(order["price"]), False)
 
                 if level.buy_order and not level.buy_executed:
@@ -273,7 +273,7 @@ class StrategyClassPoll:
                     order = self.exchange_interface.get_client_order(symbol, order_id)
                     print(f" Level  Order buy : {order}")
                     if order and order['status'] == 'FILLED':
-                        self.on_fill(symbol, symbol_configuration.level_zero, SIDE_BUY,
+                        self.on_fill(symbol, symbol_configuration.level, SIDE_BUY,
                                      float(order["executedQty"]), float(order["price"]), False)
 
     def process_strategy_config_update(self, message_dict):
