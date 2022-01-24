@@ -18,11 +18,11 @@ class Binance_Async_Interface:
         self.account_bal_usd = None
         self.initialized = False
         self.account = None
-        self.exechange_info = None
+        self.exchange_info = None
         self.orders = []
 
     def send_error_to_queue(self, res):
-        res["Type"] = "BinanceErrorOccured"
+        res["Type"] = "BinanceErrorOccurred"
         res["Client"] = self.message.client_details.Client_Id
         self.queue.put(res)
 
@@ -32,7 +32,7 @@ class Binance_Async_Interface:
                                                    self.message.client_details.Client_Api_Key2,
                                                    testnet=self.message.IsTestNet)
             self.account = await self.client.get_account()
-            self.exechange_info = await self.client.get_exchange_info()
+            self.exchange_info = await self.client.get_exchange_info()
             acct_to_send = copy.deepcopy(self.account)
             acct_to_send["Type"] = "ExchangeResponseAccount"
             acct_to_send["Client"] = self.message.client_details.Client_Id
@@ -40,23 +40,19 @@ class Binance_Async_Interface:
             # print(acct_to_send)
             # json_object = json.dumps(acct_to_send, indent = 4)
         except BinanceAPIException as e:
-            res = {}
-            res["Description"] = str(e)
-            res["Reason"] = "create"
+            res = {"Description": str(e), "Reason": "create"}
             self.send_error_to_queue(res)
             # print(res)
 
         except Exception as e:
-            res = {}
-            res["Description"] = str(e)
-            res["Reason"] = "create"
+            res = {"Description": str(e), "Reason": "create"}
             self.send_error_to_queue(res)
             # print(res)
         else:
             self.initialized = True
 
     def get_price_precision(self, crypto):
-        for x in self.exechange_info['symbols']:
+        for x in self.exchange_info['symbols']:
             if x['symbol'] == crypto:
                 for c in x['filters']:
                     if c['filterType'] == 'PRICE_FILTER':
@@ -65,7 +61,7 @@ class Binance_Async_Interface:
         return None
 
     def get_qty_precision(self, crypto):
-        for x in self.exechange_info['symbols']:
+        for x in self.exchange_info['symbols']:
             if x['symbol'] == crypto:
                 for c in x['filters']:
                     if c['filterType'] == 'LOT_SIZE':
@@ -93,7 +89,7 @@ class Binance_Async_Interface:
             order = await client2.get_order(symbol=symbol, orderId=order_id)
             order["Type"] = "OrderStatus"
             order["Client"] = self.message.client_details.Client_Id
-            order["LastExcutionPrice"] = res["L"]
+            order["LastExecutionPrice"] = res["L"]
             order["CurrentStatus"] = res["X"]
             self.queue.put(order)
         else:
@@ -116,15 +112,11 @@ class Binance_Async_Interface:
                         print("Time out")
 
         except BinanceAPIException as e:
-            res = {}
-            res["Description"] = str(e)
-            res["Reason"] = "wait_on_user"
+            res = {"Description": str(e), "Reason": "wait_on_user"}
             self.send_error_to_queue(res)
             # print(res)
         except Exception as e:
-            res = {}
-            res["Description"] = str(e)
-            res["Reason"] = "wait_on_user"
+            res = {"Description": str(e), "Reason": "wait_on_user"}
             self.send_error_to_queue(res)
             # print(res)
 
@@ -141,23 +133,13 @@ class Binance_Async_Interface:
                                                    quantity=qty)
             return order
         except BinanceAPIException as e:
-            res = {}
-            res["Description"] = str(e)
-            res["Reason"] = "send_order"
-            res["Symbol"] = crypto_symbol
-            res["Side"] = side
-            res["Qty"] = qty
+            res = {"Description": str(e), "Reason": "send_order", "Symbol": crypto_symbol, "Side": side, "Qty": qty}
             self.send_error_to_queue(res)
             print(res)
 
             return None
         except Exception as e:
-            res = {}
-            res["Description"] = str(e)
-            res["Reason"] = "send_order"
-            res["Symbol"] = crypto_symbol
-            res["Side"] = side
-            res["Qty"] = qty
+            res = {"Description": str(e), "Reason": "send_order", "Symbol": crypto_symbol, "Side": side, "Qty": qty}
             self.send_error_to_queue(res)
             print(res)
             return None
@@ -171,25 +153,15 @@ class Binance_Async_Interface:
                                                    quantity=qty, price=str(price))
             return order
         except BinanceAPIException as e:
-            res = {}
-            res["Description"] = str(e)
-            res["Reason"] = "send_order"
-            res["Symbol"] = crypto_symbol
-            res["Side"] = side
-            res["Qty"] = qty
-            res["price"] = price
+            res = {"Description": str(e), "Reason": "send_order", "Symbol": crypto_symbol, "Side": side, "Qty": qty,
+                   "price": price}
             self.send_error_to_queue(res)
             print(res)
 
             return None
         except Exception as e:
-            res = {}
-            res["Description"] = str(e)
-            res["Reason"] = "send_order"
-            res["Symbol"] = crypto_symbol
-            res["Side"] = side
-            res["Qty"] = qty
-            res["price"] = price
+            res = {"Description": str(e), "Reason": "send_order", "Symbol": crypto_symbol, "Side": side, "Qty": qty,
+                   "price": price}
             self.send_error_to_queue(res)
             print(res)
             return None
@@ -197,8 +169,8 @@ class Binance_Async_Interface:
     async def cancel_all(self):
         try:
             orders = await self.client.get_open_orders()
-            for ord in orders:
-                res = await self.client.cancel_order(symbol=ord['symbol'], orderId=ord['orderId'])
+            for order in orders:
+                res = await self.client.cancel_order(symbol=order['symbol'], orderId=order['orderId'])
                 await self.send_order_cancel_status(res)
                 # print(res)
             return True

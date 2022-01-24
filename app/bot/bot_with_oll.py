@@ -82,7 +82,7 @@ class StrategyConfiguration:
 
 class StrategyClassPoll:
     def __init__(self, message, queue, parent_queue, bot_update_topic, exchange_interface_type,
-                 messaging_interface_type):
+                 messaging_interface_type, redis_interface_type):
         self.message = message
         self.update_queue = queue
         self.parent_queue = parent_queue
@@ -90,7 +90,7 @@ class StrategyClassPoll:
         self.messaging_interface = messaging_interface_type()
         self.exchange_interface = exchange_interface_type(self.message, queue)
         self.symbol_configurations = {}
-        self.redis_conn = redis_conn = redis.from_url(os.getenv('REDIS_URL'))
+        self.redis_conn = redis_interface_type()
 
     def create_connection(self):
         # self.exchange_interface.
@@ -104,13 +104,6 @@ class StrategyClassPoll:
             if price:
                 print(f'price from redis: {price}')
                 return float(price)
-
-        if symbol == "BTCUSDT":
-            return 43005.91
-        elif symbol == "BNBUSDT":
-            return 493.0
-        elif symbol == "MATICUSDT":
-            return 2.290
         return None
 
     def get_crypto_qty_from_ust_budget(self, symbol, usd_budget):
@@ -138,16 +131,25 @@ class StrategyClassPoll:
     def send_initial_orders_for_all_symbols(self):
         for symbol in self.symbol_configurations.keys():
             if not self.send_initial_orders_for_symbol(symbol):
+                error_message_dict = {"Type": "BotErrorOccurred",
+                                      "Client": self.message.client_details.Client_Id,
+                                      "Reason": "send_initial_orders_for_symbol failed"}
+                self.process_error_message(error_message_dict)
                 return False
 
         return True
 
     def refresh_bot_for_symbol(self, symbol):
-        self.cancel_all_open_orders(symbol)
+        if not self.cancel_all_open_orders(symbol):
+            error_message_dict = {"Type": "BotErrorOccurred",
+                                  "Client": self.message.client_details.Client_Id,
+                                  "Reason": "cancel_all_open_orders failed"}
+            self.process_error_message(error_message_dict)
+
         self.send_initial_orders_for_symbol(symbol)
 
     def cancel_all_open_orders(self, symbol):
-        self.exchange_interface.cancel_all(symbol)
+        return self.exchange_interface.cancel_all(symbol)
 
     def get_quantity_to_sell(self, symbol_configuration, level, executed_qty, is_level_zero):
         return executed_qty
@@ -283,6 +285,11 @@ class StrategyClassPoll:
             for symbol_configuration in message_update.Configurations:
                 if symbol_configuration.Configuration.Symbol in self.symbol_configurations:
                     print(f"Error Configuration for symbol already exists: {symbol_configuration.Configuration.Symbol}")
+                    error_message_dict = {"Type": "BotErrorOccurred",
+                                          "Client": self.message.client_details.Client_Id,
+                                          "Reason": f"Error Configuration for symbol already exists "
+                                                    f"{symbol_configuration.Configuration.Symbol}"}
+                    self.process_error_message(error_message_dict)
                     return False
 
             for symbol_configuration in message_update.Configurations:
@@ -300,6 +307,10 @@ class StrategyClassPoll:
 
             for symbol_configuration in message_update.Configurations:
                 if not self.send_initial_orders_for_symbol(symbol_configuration.Configuration.Symbol):
+                    error_message_dict = {"Type": "BotErrorOccurred",
+                                          "Client": self.message.client_details.Client_Id,
+                                          "Reason": "send_initial_orders_for_symbol failed"}
+                    self.process_error_message(error_message_dict)
                     return False
 
     def process_exchange_response_account(self, message_dict):
@@ -373,9 +384,10 @@ class StrategyClassPoll:
                 print(f"Error occur in bot: {e}")
 
 
-def bot_main(config, queue, parent_queue, bot_update_topic, exchange_interface_type, messaging_interface_type):
+def bot_main(config, queue, parent_queue, bot_update_topic, exchange_interface_type, messaging_interface_type,
+             redis_interface_type):
     print(f"Here 1")
     message = json.loads(config, object_hook=lambda d: SimpleNamespace(**d))
     strategy = StrategyClassPoll(message, queue, parent_queue, bot_update_topic, exchange_interface_type,
-                                 messaging_interface_type)
+                                 messaging_interface_type, redis_interface_type)
     strategy.bot_runner()

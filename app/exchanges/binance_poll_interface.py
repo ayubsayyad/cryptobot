@@ -77,7 +77,18 @@ class BinancePollInterface:
         self.queue.put(res)
 
     def get_client_trades(self, symbol):
-        trades = self.client.get_my_trades(symbol=symbol)
+        try:
+            trades = self.client.get_my_trades(symbol=symbol)
+        except BinanceAPIException as e:
+            res = {"Description": str(e), "Reason": "send_order", "Symbol": crypto_symbol, "Side": side, "Qty": qty}
+            self.send_error_to_queue(res)
+            return None
+
+        except Exception as e:
+            res = {"Description": str(e), "Reason": "send_order", "Symbol": crypto_symbol, "Side": side, "Qty": qty}
+            self.send_error_to_queue(res)
+            return None
+
         return trades
 
     def send_mkt_order(self, crypto_symbol, side, qty):
@@ -95,7 +106,18 @@ class BinancePollInterface:
             return None
 
     def get_client_order(self, ord_symbol, order_id):
-        return self.client.get_order(symbol=ord_symbol, orderId=order_id)
+        try:
+            order = self.client.get_order(symbol=ord_symbol, orderId=order_id)
+            return order
+        except BinanceAPIException as e:
+            res = {"Description": str(e), "Reason": "send_order", "Symbol": crypto_symbol, "Side": side, "Qty": qty}
+            self.send_error_to_queue(res)
+            return None
+
+        except Exception as e:
+            res = {"Description": str(e), "Reason": "send_order", "Symbol": crypto_symbol, "Side": side, "Qty": qty}
+            self.send_error_to_queue(res)
+            return None
 
     def send_order(self, crypto_symbol, side, order_type, time_in_force, qty, price):
         try:

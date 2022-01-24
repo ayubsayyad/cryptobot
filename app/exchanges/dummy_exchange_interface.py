@@ -23,6 +23,13 @@ class DummyExchangeInterface:
         self.last_orders = []
         self.last_mkt_order = None
 
+        self.orderid_counter = 1
+
+        self.filled_orders = {}
+
+        self.cancel_all_called = False
+        self.cancel_all_called_symbol = ""
+
 
     def get_price_precision(self, crypto):
         return '0.00000100'.find('1') - 1
@@ -53,7 +60,8 @@ class DummyExchangeInterface:
         return None
 
     def send_mkt_order(self, crypto_symbol, side, qty):
-        order_response = {'symbol': crypto_symbol, 'orderId': 1, 'orderListId': -1,
+        self.orderid_counter = self.orderid_counter + 1
+        order_response = {'symbol': crypto_symbol, 'orderId': str(self.orderid_counter), 'orderListId': -1,
                           'clientOrderId': 'wPJ4k9kJJ6tG3i2vstcwIb', 'transactTime': 1641361224365,
                           'price': '0.00000000',
                           'origQty': str(qty), 'executedQty': str(qty), 'cummulativeQuoteQty': '231.26485000',
@@ -71,9 +79,10 @@ class DummyExchangeInterface:
         return order_response
 
     def cancel_all(self, symbol):
+        self.cancel_all_called = True
+        self.cancel_all_called_symbol = symbol
+        print('cancel_all')
         return True
-
-        # print('cancel_all')
 
     def send_order_cancel_status(self, res):
         res["Client"] = self.message.client_details.Client_Id
@@ -87,9 +96,10 @@ class DummyExchangeInterface:
         pass
 
     def send_order(self, crypto_symbol, side, order_type, time_in_force, qty, price):
-        order_response = {'symbol': crypto_symbol, 'orderId': 1, 'orderListId': -1,
+        self.orderid_counter = self.orderid_counter + 1
+        order_response = {'symbol': crypto_symbol, 'orderId': str(self.orderid_counter), 'orderListId': -1,
                           'clientOrderId': 'wPJ4k9kJJ6tG3i2vstcwIb', 'transactTime': 1641361224365,
-                          'price': '0.00000000',
+                          'price': str(price),
                           'origQty': str(qty), 'executedQty': str(qty), 'cummulativeQuoteQty': '231.26485000',
                           'status': 'NEW', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': side}
 
@@ -101,3 +111,8 @@ class DummyExchangeInterface:
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self.wait_on_user())
         loop.close()
+
+    def get_client_order(self, ord_symbol, order_id):
+        return self.filled_orders.get(order_id, None)
+        pass
+

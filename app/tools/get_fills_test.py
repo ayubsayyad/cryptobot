@@ -19,11 +19,10 @@ from binance.exceptions import BinanceAPIException
 
 
 client = Client('aP0q0oEd7q5BPXVOWAans2yssuM2ZtlSDVv8QPOSUqYkxSeACZhnlgdGgsNkRbhC', 'MHdyNt5uKjfq42oGpo0cUHUDKoZ1evfnZTt4KqwZ004FQnRUBwT9nGV7TrGpXfse', testnet=True)
-#client = Client('EEH6GRZJTQE6jhVRPxUoyLTFGBSxBCqqKaAokxj6ztzrHeV25Mc0NF7WmIswHRvl', 'x3x07BYPGEdj9vTRh1BM7bjWm9n9OAx5jwJAqXdDsOq6rM4EjKANqF8DaKVtSsQ5', tld='us')
 account = client.get_account()
 print(account)
 
-orders = client.get_open_orders()
+orders = client.get_my_trades(symbol='BNBUSDT')
 print(orders)
 
 

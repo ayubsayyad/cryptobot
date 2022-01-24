@@ -1,4 +1,3 @@
-
 import asyncio
 import copy
 import json
@@ -14,16 +13,16 @@ from binance import Client, AsyncClient, ThreadedWebsocketManager, ThreadedDepth
 from binance.enums import *
 from binance.exceptions import BinanceAPIException
 import os
-print(os.getenv('PYTHONPATH'))
 from exchanges.binance_poll_interface import BinancePollInterface
 from messaging.kafka_messaging_interface import KafkaMessagingConsumer, KafkaMessagingProducer
+from messaging.redis_interface import RedisInterface
 import bot_logger
 import bot_with_oll
 
 
 class BotController:
     def __init__(self, configuration_update_topic1, bot_update_topic1, message_consume_interface,
-                 message_produce_interface, bot_exchange_interface) -> None:
+                 message_produce_interface, bot_exchange_interface, redis_interface_type) -> None:
         self.logger = bot_logger.get_logger("bot_controller")
         self.logger.info("starting Bot controller")
         self.parent_queue = multiprocessing.Queue()
@@ -36,6 +35,7 @@ class BotController:
 
         self.bot_exchange_interface = bot_exchange_interface
         self.message_produce_interface = message_produce_interface
+        self.redis_interface_type = redis_interface_type
 
     def stop_all_running_bots(self):
         for key, val in list(self.running_bots.items()):
@@ -54,7 +54,7 @@ class BotController:
             self.logger.warning("Bot not running")
             return False
         message_to_send = {'Type': "StrategyConfigurationUpdate", 'Value': msg}
-        proc,  bot_queue = self.running_bots[message.client_details.Client_Id]
+        proc, bot_queue = self.running_bots[message.client_details.Client_Id]
         bot_queue.put(message_to_send)
 
     def start_new_bot(self, msg):
@@ -67,7 +67,8 @@ class BotController:
         print(f"starting new bot!!!! : {msg} \n")
 
         proc = Process(target=bot_with_oll.bot_main, args=(msg, bot_queue, self.parent_queue, self.bot_update_topic,
-                                                           self.bot_exchange_interface, self.message_produce_interface))
+                                                           self.bot_exchange_interface, self.message_produce_interface,
+                                                           self.redis_interface_type))
         proc.start()
         self.running_bots[message.client_details.Client_Id] = (proc, bot_queue)
         return True
@@ -132,5 +133,5 @@ if __name__ == "__main__":
     bot_update_topic = 'cumberland-30347.Bot_Updates'
 
     bot_controller = BotController(configuration_update_topic, bot_update_topic, KafkaMessagingConsumer,
-                                   KafkaMessagingProducer, BinancePollInterface)
+                                   KafkaMessagingProducer, BinancePollInterface, RedisInterface)
     bot_controller.run_controller_loop()
